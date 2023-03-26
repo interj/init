@@ -12,11 +12,13 @@ fi
 REPO_PATH="$(pwd)"
 USERNAME=""
 CREATE_USER=false
+GROUP="wheel"
 
 # Parse command-line arguments
 while true; do
   case "$1" in
     --user ) USERNAME="$2"; CREATE_USER=true; shift 2 ;;
+    --group ) GROUP="$2"; shift 2 ;;
     -- ) shift; break ;;
     * ) break ;;
   esac
@@ -27,7 +29,7 @@ if $CREATE_USER; then
   echo "Creating user ${USERNAME}..."
   useradd -m -s `which zsh` "${USERNAME}"
   passwd "${USERNAME}"
-  usermod -aG wheel "${USERNAME}"
+  usermod -aG "${GROUP}" "${USERNAME}"
   echo "User ${USERNAME} created and added to the wheel group."
   HOME_DIR="/home/${USERNAME}"
 else
