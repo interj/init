@@ -40,7 +40,7 @@ fi
 
 # Clone oh-my-zsh repository
 echo "Cloning oh-my-zsh repository..."
-git clone https://github.com/robbyrussell/oh-my-zsh.git "${HOME_DIR}/.oh-my-zsh"
+git clone --depth 1 https://github.com/robbyrussell/oh-my-zsh.git "${HOME_DIR}/.oh-my-zsh"
 
 # Create .zshenv file with ZSH_CUSTOM
 if [ -e "${HOME_DIR}/.zshenv" ]; then
