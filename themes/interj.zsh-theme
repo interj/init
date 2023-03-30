@@ -34,6 +34,7 @@ ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg_bold[grey]%}✱"
 
 reset-prompt-accept-line() 
 {
+    zle autosuggest-clear
     zle reset-prompt
     zle accept-line
 }
