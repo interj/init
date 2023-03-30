@@ -9,6 +9,8 @@ if [ ! -e ".zshrc" ] || [ ! -e ".vimrc" ] || [ ! -e "themes" ]; then
   exit 1
 fi
 
+git config submodule.recurse true
+
 REPO_PATH="$(pwd)"
 USERNAME=""
 CREATE_USER=false
