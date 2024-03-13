@@ -103,8 +103,8 @@ function swap()
      mv "$tempfile" "$2"
 }
 
-export SYSTEMD_LESS=FRMK
 export LESS='--mouse --wheel-lines=3'
+export SYSTEMD_LESS="FRMK $LESS"
 
 function sshz()
 {
