@@ -104,6 +104,7 @@ function swap()
 }
 
 export SYSTEMD_LESS=FRMK
+export LESS='--mouse --wheel-lines=3'
 
 function sshz()
 {
