@@ -124,3 +124,4 @@ if [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
     precmd_functions+=(keep_current_path)
 fi
 
+alias kurwa=fuck
