@@ -66,7 +66,7 @@ ZSH_THEME="interj"
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 
 
-plugins=(git rsync colored-man-pages zsh-syntax-highlighting zsh-autosuggestions colorize thefuck)
+plugins=(git rsync colored-man-pages zsh-syntax-highlighting zsh-autosuggestions colorize)
 
 # User configuration
 # export MANPATH="/usr/local/man:$MANPATH"
@@ -129,5 +129,18 @@ if [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
     precmd_functions+=(keep_current_path)
 fi
 
-alias kurwa=fuck
+# pay-respects (thefuck replacement) — https://github.com/iffse/pay-respects
+# Defines `fuck` + inline correction (^X^X) + a command_not_found_handler, plus
+# rage-typo aliases (fuck/kurwa variants). The baked file is the cached init
+# script + plain alias lines; sourcing it does zero subprocesses or whence checks.
+# Regenerate after a pay-respects upgrade: zsh ~/init/pay-respects/gen-pay-respects-aliases.zsh
+# ~/.cargo/bin is on PATH via ~/.zshenv. Files live in init/pay-respects/ (a
+# subdir) so ZSH_CUSTOM's top-level *.zsh autoloader does NOT source them.
+if [[ -o interactive ]] && (( $+commands[pay-respects] )); then
+	if [[ -r $HOME/init/pay-respects/pay-respects-aliases.zsh ]]; then
+		source $HOME/init/pay-respects/pay-respects-aliases.zsh
+	else
+		eval "$(pay-respects zsh --alias fuck)"   # fallback if not yet baked
+	fi
+fi
 export PATH="$HOME/.local/bin:$PATH"
