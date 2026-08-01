@@ -130,3 +130,4 @@ if [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
 fi
 
 alias kurwa=fuck
+export PATH="$HOME/.local/bin:$PATH"
