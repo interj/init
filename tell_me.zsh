@@ -5,6 +5,8 @@
 # -c/--continue resumes the previous tell_me conversation (works from any dir —
 # claude sessions are per-directory, so the session's dir is remembered and cd'd
 # into). Alt+R drops the resume command onto the command line (press Enter to run).
+# Non-resume runs execute in ~/scratch (a memory-ignored throwaway dir), so ad-hoc
+# questions never seed memory in whatever project you happen to be standing in.
 # e.g. tell_me how to get tail -f output from a systemctl service
 #      tell_me --effort high design a backup strategy for postgres
 #      tell_me -c so how would I automate that?
@@ -117,11 +119,15 @@ Investigate using read-only commands only. Do NOT create, modify, move, or delet
   # styled by hand here (glow only renders the final answer, not these lines):
   # the tool name in cyan-bold (color 6, matching code), its argument dimmed.
   # </dev/null skips claude's ~3s wait for stdin that never arrives.
-  # The claude stage runs in a subshell so that, when resuming, we can cd into the
-  # session's project dir without disturbing your actual pwd.
+  # Non-resume runs happen in ~/scratch, a throwaway dir the memory automation
+  # ignores, so ad-hoc questions never seed memory in the repo you're standing in;
+  # resuming cd's into the stored session's own dir. The subshell keeps this cd off
+  # your actual pwd.
   # --disallowedTools blocks file mutation: in unattended auto mode an answer
   # should never silently edit/write files (Bash can still read/inspect).
-  ( [[ -n $resume_dir ]] && cd -- "$resume_dir"
+  local work_dir=${resume_dir:-$HOME/scratch}
+  [[ -d $work_dir ]] || mkdir -p -- "$work_dir"
+  ( cd -- "$work_dir" || exit 1
     claude -p --output-format stream-json --verbose \
            --permission-mode auto --disallowedTools "Edit,Write,NotebookEdit" \
            --append-system-prompt "$sysprompt" \
@@ -152,7 +158,7 @@ Investigate using read-only commands only. Do NOT create, modify, move, or delet
   # resume it from anywhere. Alt+R drops the resume command onto the command line.
   local sid=$(jq -r 'select(.type=="result") | .session_id // empty' "$raw")
   if [[ -n $sid ]]; then
-    local sess_dir=${resume_dir:-$PWD}
+    local sess_dir=$work_dir
     mkdir -p ${sessfile:h} && print -r -- "$sid $sess_dir" > "$sessfile"
     [[ -t 1 ]] && printf '  \033[2m↳ continue: tell_me -c "…" · Alt+R · or run\033[0m  \033[36;48;2;48;52;56m(cd %s && claude -r %s)\033[0m\n' "$sess_dir" "$sid"
   fi
