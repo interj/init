@@ -8,12 +8,49 @@
 # e.g. tell_me how to get tail -f output from a systemctl service
 #      tell_me --effort high design a backup strategy for postgres
 #      tell_me -c so how would I automate that?
+
+# Full help for tell_me. Printed to stdout (it's what the user asked for) by the
+# -h/--help flag, which returns 0 — asking for help isn't an error.
+_tell_me_help() {
+  print -r -- 'tell_me — ask claude for a concise, read-only synopsis from the terminal.
+
+Usage:
+  tell_me [flags] <question>
+
+Flags:
+  --effort <level>   reasoning effort: low|medium|high|xhigh|max (default: low)
+  -m, --model <m>    claude model to use
+  --max-turns <n>    cap the number of agent turns
+  -c, --continue     resume the previous tell_me conversation (from any dir)
+  -h, --help         show this help and exit
+  --                 end flag parsing; everything after is the question
+
+  Any other claude flag is passed through. Value-taking passthrough flags must
+  use the --flag=value form (one token) — a bare `--flag value` ends flag
+  parsing at value and swallows your question.
+
+Behaviour:
+  Investigates with read-only commands only (Edit/Write/NotebookEdit are blocked
+  and the model is steered away from mutating anything outside /tmp). Live tool
+  lines are shown as claude works; the final answer is rendered with glow.
+
+Resume:
+  -c/--continue resumes the last session (its directory is remembered and
+  switched into automatically). Alt+R drops the resume command onto the line.
+
+Examples:
+  tell_me how to tail -f a systemd service
+  tell_me --effort high design a backup strategy for postgres
+  tell_me -c so how would I automate that?'
+}
+
 tell_me() {
   emulate -L zsh
 
   local effort=low cont=0
   local -a claude_args
   local sessfile=${XDG_CACHE_HOME:-$HOME/.cache}/tell_me.session
+
   # Consume leading flags. Value-taking flags must be recognized here so their
   # value isn't mistaken for the start of the question — that's why -m/--model and
   # --max-turns are first-class alongside --effort. For any *other* claude flag
@@ -29,6 +66,7 @@ tell_me() {
       --max-turns)     claude_args+=(--max-turns "$2"); shift 2 ;;
       --max-turns=*)   claude_args+=("$1"); shift ;;
       -c|--continue)   cont=1; shift ;;
+      -h|--help)       _tell_me_help; return 0 ;;
       --)              shift; break ;;
       *)               claude_args+=("$1"); shift ;;
     esac
