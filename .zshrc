@@ -200,3 +200,5 @@ if [[ -o interactive ]]; then
   bindkey '^S' history-incremental-search-forward
 fi
 
+# URL-decode a string (handles %XX escapes and + as space)
+urldecode() { python3 -c 'import sys,urllib.parse as u; print(u.unquote_plus(sys.argv[1]))' "$1"; }
