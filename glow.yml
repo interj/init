@@ -1,0 +1,18 @@
+# glow config — symlinked to ~/.config/glow/glow.yml, version-controlled here.
+# Purpose: make standalone `glow <file>` render with the same complete,
+# theme-neutral style that tell_me uses (the stock default is style:auto +
+# width:80, which leaves ** literal off a color TTY and clashes with the theme).
+#
+# style: absolute path to the shared style file (glow does NOT expand ~ or $HOME).
+#        tell_me points at the same file, so it's a single source of truth.
+style: "/home/jakubgargul/init/tell_me.glow.json"
+#
+# width: wrap column. NOTE 0 here means "wrap at the terminal width" (auto) — it
+#        does NOT disable wrapping. Only the `-w 0` CLI flag disables it, which is
+#        why tell_me passes that flag for copy-pasteable oneliners. For reading
+#        files, wrapping to the window width is what you want.
+width: 0
+#
+pager: false   # print straight to the terminal instead of into a pager
+mouse: false
+all: false
