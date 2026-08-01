@@ -66,7 +66,7 @@ ZSH_THEME="interj"
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets)
 
 
-plugins=(git rsync colored-man-pages zsh-syntax-highlighting zsh-autosuggestions colorize)
+plugins=(git rsync colored-man-pages zsh-syntax-highlighting zsh-autosuggestions colorize thefuck)
 
 # User configuration
 # export MANPATH="/usr/local/man:$MANPATH"
