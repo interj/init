@@ -143,7 +143,7 @@ if [[ -o interactive ]] && (( $+commands[pay-respects] )); then
 		eval "$(pay-respects zsh --alias fuck)"   # fallback if not yet baked
 	fi
 fi
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/claudoza/bin:$HOME/.local/bin:$PATH"
 
 # --- live shared history: pick up other shells' commands on keypress ---
 # Up/Down recall and Ctrl-R/Ctrl-S search first import only the newly-appended
