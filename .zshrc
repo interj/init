@@ -73,6 +73,9 @@ plugins=(git rsync colored-man-pages zsh-syntax-highlighting zsh-autosuggestions
 
 source $ZSH/oh-my-zsh.sh
 
+# omz auto-register only fires on literal $(git_prompt_status) in PS1; theme wraps it
+_omz_register_handler _omz_git_prompt_status
+
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
