@@ -103,13 +103,16 @@ tell_me() {
   # but not Bash, so we steer the model away from mutating anything outside /tmp.
   local sysprompt="You are answering a terminal user through a CLI tool. Be concise and practical, and keep answers brief. Output GitHub-flavored markdown: short prose, fenced code blocks for any commands, bullet points where useful.
 
-Investigate using read-only commands only. Do NOT create, modify, move, or delete files, and do not change system state, outside /tmp — no output redirection (>, >>, tee), rm, mv, chmod, package installs, git writes, or config edits on real paths. If you need scratch space, keep it strictly under /tmp. When fulfilling the request would require changing something, show the command for the user to run instead of running it yourself."
+Investigate using read-only commands only. Do NOT create, modify, move, or delete files, and do not change system state, outside /tmp — no output redirection (>, >>, tee), rm, mv, chmod, package installs, git writes, or config edits on real paths. If you need scratch space, keep it strictly under /tmp. When fulfilling the request would require changing something, show the command for the user to run instead of running it yourself.
+
+To find a past Claude session, skip the claude-transcripts skill and run \`python3 ~/.claude/skills/claude-transcripts/scripts/transcripts.py search '<topic keyword>' --project <basename of the user's directory>\` directly; drop \`--project\` only if that misses (\`show <name>\` if the user gives a session name). A hit in the user's project wins over any session it mentions elsewhere. Confirm the hit by its prompts, answer with its resume line, and stop. After 3 missed searches, say so and list the closest candidates instead of searching on."
 
   # The user turn reconstructs the full imperative ("tell me <args>") so Claude
   # sees the whole request, not just the bare fragment. Without this, the shell
   # eats the command name and a fragment like "off" or "a date" reads as a
   # different question than "tell me off" / "tell me a date".
-  local prompt="The user typed this request: \"tell me $*\""
+  # Run itself happens in ~/scratch, so caller's dir travels in the prompt.
+  local prompt="The user typed this request: \"tell me $*\" (in $PWD)"
 
   local raw=$(mktemp)
 
