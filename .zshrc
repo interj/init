@@ -1,3 +1,8 @@
+# mosh keeps the client terminal in the alternate screen, where Termux turns scrolling into arrow keys; tmux mouse mode gets real wheel events and scrollback.
+# mosh forwards only the last mouse mode and Termux ignores 1003, which Claude Code requests unless clicks are disabled.
+# mosh already keeps the session alive, so each connection gets its own tmux session that dies with it.
+[[ -o interactive && -z $TMUX && $(ps -o comm= -p $PPID) == mosh-server ]] && tmux new -e CLAUDE_CODE_DISABLE_MOUSE_CLICKS=1 \; set destroy-unattached on
+
 # Path to your oh-my-zsh installation
 
 # xhost local:interj > /dev/null 2>&1
@@ -130,6 +135,10 @@ if [ -f /proc/sys/fs/binfmt_misc/WSLInterop ]; then
         printf "\e]9;9;%s\e\\" "$(wslpath -w "$PWD")"
     }
     precmd_functions+=(keep_current_path)
+
+    # nord exits 113 when quit with Ctrl+Shift+Q; exiting 0 lets Windows Terminal close the tab.
+    close_tab_after_nord_quit() { (( $? != 113 )) || exit 0 }
+    precmd_functions+=(close_tab_after_nord_quit)
 fi
 
 # pay-respects (thefuck replacement) — https://github.com/iffse/pay-respects
