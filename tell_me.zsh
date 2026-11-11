@@ -161,6 +161,11 @@ To find a past Claude session, skip the claude-transcripts skill and run \`pytho
   # resume it from anywhere. Alt+R drops the resume command onto the command line.
   local sid=$(jq -r 'select(.type=="result") | .session_id // empty' "$raw")
   if [[ -n $sid ]]; then
+    # Session log pins first run's system prompt; every resume replays it, flags
+    # ignored. Drop pin so `claude -r` builds normal prompt, not read-only one.
+    # tell_me -c still gets $sysprompt from its own --append-system-prompt.
+    local log=(~/.claude/projects/*/$sid.jsonl(N))
+    (( $#log )) && sed -i '/"attachment":{"type":"prompt_snapshot"/d' -- $log[1]
     local sess_dir=$work_dir
     mkdir -p ${sessfile:h} && print -r -- "$sid $sess_dir" > "$sessfile"
     [[ -t 1 ]] && printf '  \033[2m↳ continue: tell_me -c "…" · Alt+R · or run\033[0m  \033[36;48;2;48;52;56m(cd %s && claude -r %s)\033[0m\n' "$sess_dir" "$sid"
