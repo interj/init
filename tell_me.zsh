@@ -24,6 +24,7 @@ Flags:
   -m, --model <m>    claude model to use
   --max-turns <n>    cap the number of agent turns
   -c, --continue     resume the previous tell_me conversation (from any dir)
+  --incog            run inside claude_incog: memory read-only, no trace on disk
   -h, --help         show this help and exit
   --                 end flag parsing; everything after is the question
 
@@ -49,7 +50,7 @@ Examples:
 tell_me() {
   emulate -L zsh
 
-  local effort=low cont=0
+  local effort=low cont=0 incog=0 launcher=claude
   local -a claude_args
   local sessfile=${XDG_CACHE_HOME:-$HOME/.cache}/tell_me.session
 
@@ -68,6 +69,7 @@ tell_me() {
       --max-turns)     claude_args+=(--max-turns "$2"); shift 2 ;;
       --max-turns=*)   claude_args+=("$1"); shift ;;
       -c|--continue)   cont=1; shift ;;
+      --incog)         incog=1 launcher=claude_incog; shift ;;
       -h|--help)       _tell_me_help; return 0 ;;
       --)              shift; break ;;
       *)               claude_args+=("$1"); shift ;;
@@ -79,6 +81,10 @@ tell_me() {
   # directory — the session file records both the id and that dir.
   local -a resume_args
   local resume_dir=""
+  if (( cont && incog )); then
+    echo "tell_me: an incognito session leaves nothing to continue" >&2
+    return 1
+  fi
   if (( cont )); then
     local _id _dir
     [[ -r $sessfile ]] && read -r _id _dir < "$sessfile"
@@ -107,6 +113,11 @@ Investigate using read-only commands only. Do NOT create, modify, move, or delet
 
 To find a past Claude session, skip the claude-transcripts skill and run \`python3 ~/.claude/skills/claude-transcripts/scripts/transcripts.py search '<topic keyword>' --project <basename of the user's directory>\` directly; drop \`--project\` only if that misses (\`show <name>\` if the user gives a session name). A hit in the user's project wins over any session it mentions elsewhere. Confirm the hit by its prompts, answer with its resume line, and stop. After 3 missed searches, say so and list the closest candidates instead of searching on."
 
+  # claude keeps only the last --append-system-prompt, so this one replaces claude_incog's.
+  (( incog )) && sysprompt+="
+
+This is an incognito session: memory is read-only and nothing from it is kept on disk."
+
   # The user turn reconstructs the full imperative ("tell me <args>") so Claude
   # sees the whole request, not just the bare fragment. Without this, the shell
   # eats the command name and a fragment like "off" or "a date" reads as a
@@ -131,7 +142,7 @@ To find a past Claude session, skip the claude-transcripts skill and run \`pytho
   local work_dir=${resume_dir:-$HOME/scratch}
   [[ -d $work_dir ]] || mkdir -p -- "$work_dir"
   ( cd -- "$work_dir" || exit 1
-    claude -p --output-format stream-json --verbose \
+    $launcher -p --output-format stream-json --verbose \
            --permission-mode auto --disallowedTools "Edit,Write,NotebookEdit" \
            --append-system-prompt "$sysprompt" \
            --effort "$effort" "${resume_args[@]}" "${claude_args[@]}" "$prompt" </dev/null
@@ -160,7 +171,7 @@ To find a past Claude session, skip the claude-transcripts skill and run \`pytho
   # continuing, else the current pwd) so `tell_me -c` and the Alt+R widget can
   # resume it from anywhere. Alt+R drops the resume command onto the command line.
   local sid=$(jq -r 'select(.type=="result") | .session_id // empty' "$raw")
-  if [[ -n $sid ]]; then
+  if [[ -n $sid ]] && (( ! incog )); then
     # Session log pins first run's system prompt; every resume replays it, flags
     # ignored. Drop pin so `claude -r` builds normal prompt, not read-only one.
     # tell_me -c still gets $sysprompt from its own --append-system-prompt.
